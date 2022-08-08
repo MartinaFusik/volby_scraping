@@ -8,6 +8,7 @@ discord: Martina_F#2319
 import requests
 import bs4
 import pandas as pd
+import urllib3
 
 def main():
     url = "https://volby.cz/pls/ps2017nss/ps32?xjazyk=CZ&xkraj=12&xnumnuts=7103"
@@ -30,6 +31,7 @@ def ziskej_informace_z_table(obsah):
     return table
 
 def sloupec_cisla(data):
+    '''Získej kódy všech obcí'''
     cisla = []
     for i in data.find_all("td", {"class": "cislo"}):
         cislo = i.text
@@ -37,6 +39,7 @@ def sloupec_cisla(data):
     return cisla
 
 def sloupec_nazev(data):
+    '''Získej názvy všech obcí'''
     nazev = []
     for i in data.find_all("td", {"class": "overflow_name"}):
         obec = i.text
@@ -44,11 +47,13 @@ def sloupec_nazev(data):
     return nazev
 
 def data_z_odkazu(data):
+    '''Získej URL pro jednotlivé výsledky'''
     links = []
     for i in data.find_all("td", {"class": "cislo"}):
         for x in i.find_all("a"):
             links.append(x.get("href"))
     return links
+
 
 if __name__ == "__main__":
     main()
