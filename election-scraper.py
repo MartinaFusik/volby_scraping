@@ -19,7 +19,7 @@ def main():
     url_data = projdi_odkazy_pridej_prefix(odkazy)
     df = pd.DataFrame({"Číslo obce": cisla_obce,
                        "Název obce": nazev_obce,
-                       "data": url_data}
+                       "Registrovaní volici": url_data}
                       )
     df.to_csv('items.csv', encoding='utf-8')
 
@@ -60,7 +60,6 @@ def projdi_odkazy_pridej_prefix(url: list):
         append_str = "https://volby.cz/pls/ps2017nss/"
         pre_res = [append_str + link for link in url]
     return pre_res
-
 
 if __name__ == "__main__":
     main()
