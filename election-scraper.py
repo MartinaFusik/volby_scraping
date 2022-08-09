@@ -16,9 +16,10 @@ def main():
     cisla_obce = sloupec_cisla(odpoved)
     nazev_obce = sloupec_nazev(odpoved)
     odkazy = data_z_odkazu(odpoved)
+    url_data = projdi_odkazy_pridej_prefix(odkazy)
     df = pd.DataFrame({"Číslo obce": cisla_obce,
                        "Název obce": nazev_obce,
-                       "Odkazy": odkazy}
+                       "data": url_data}
                       )
     df.to_csv('items.csv', encoding='utf-8')
 
@@ -53,6 +54,12 @@ def data_z_odkazu(data):
         for x in i.find_all("a"):
             links.append(x.get("href"))
     return links
+
+def projdi_odkazy_pridej_prefix(url: list):
+    for link in url:
+        append_str = "https://volby.cz/pls/ps2017nss/"
+        pre_res = [append_str + link for link in url]
+    return pre_res
 
 
 if __name__ == "__main__":
