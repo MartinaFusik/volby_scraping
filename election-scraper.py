@@ -106,7 +106,7 @@ def vytvor_hlavicku_tabulky(url):
     hlavicka_tabulky.extend(nazvy_stran)
     return hlavicka_tabulky
 
-def vytvor_vysledky_obce(url):
+def vysledky_obce(url):
     url_mest = zjisti_url_mesta(url)
     vysledky_obce = projdi_data(url)
     volici_mesta = projdi_jednotliva_mesta(url_mest)
@@ -119,13 +119,13 @@ def vytvor_vysledky_obce(url):
 
 def zapis_do_csv(url, nazev_souboru):
     print(f"Stahuji data z url: {url}")
-    vysledky_obce = vytvor_vysledky_obce(url)
+    obce = vysledky_obce(url)
     hlavicka_tabulky = vytvor_hlavicku_tabulky(url)
     print(f"Ukládám data do souboru: {nazev_souboru}")
-    with open(nazev_souboru, "w", newline="") as f:
+    with open(nazev_souboru, "w", newline="", encoding='utf-8') as f:
         thewriter = csv.writer(f)
         thewriter.writerow(hlavicka_tabulky)
-        for radek in vysledky_obce:
+        for radek in obce:
             thewriter.writerow(radek)
 
 if __name__ == "__main__":
