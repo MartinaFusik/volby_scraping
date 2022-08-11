@@ -26,19 +26,19 @@ Ukázka projektu pro okres Prostějov:
 1. argument https://volby.cz/pls/ps2017/ps32?xjazyk=CZ&xkraj=12&xnumnuts=7103
 2. argument prostejov.csv
 
-## Spuštění programu:
+### Spuštění programu:
 ```
 python election-scraper.py "https://volby.cz/pls/ps2017/ps32?xjazyk=CZ&xkraj=12&xnumnuts=7103" "prostejov.csv"
 ```
 
-## Průběh stahování:
+### Průběh stahování:
 ```
 Stahuji data z url: https://volby.cz/pls/ps2017/ps32?xjazyk=CZ&xkraj=12&xnumnuts=7103
 Ukládám data do souboru: prostejov.csv
 Ukoncuji election-scraper.py
 ```
 
-## Částečný výstup:
+### Částečný výstup:
 ```
 Číslo obce,Název obce,Voliči v seznamu,Vydané obálky,...
 506761,Alojzov,205,145,144,29,0,0,9,0,5,17,4,1,1,0,0,18,0,5,32,0,0,6,0,0,1,1,15,0
