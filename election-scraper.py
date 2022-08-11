@@ -8,46 +8,41 @@ discord: Martina_F#2319
 import requests
 import bs4
 import pandas as pd
+import sys
 
 def main():
-    url = "https://volby.cz/pls/ps2017nss/ps32?xjazyk=CZ&xkraj=12&xnumnuts=7103"
-    odpoved = ziskej_parsovanou_odpoved(url)
-    cisla_obce = sloupec_cisla(odpoved)
-    nazev_obce = sloupec_nazev(odpoved)
-    odkazy = data_z_odkazu(odpoved)
-    url_data = projdi_odkazy_pridej_prefix(odkazy)
-    volici_mesta_hl = projdi_jednotliva_mesta(url_data)
-    hlasy_jednotlivych_stran = projdi_udaje_stran(url_data)
-    df = pd.DataFrame({"Číslo obce": cisla_obce,
-                       "Název obce": nazev_obce,
-                       "Volící města": volici_mesta_hl,
-                       "Strany": hlasy_jednotlivych_stran}
-                      )
-    df.to_csv('items.csv', encoding='utf-8')
+    if len(sys.argv) != 3:
+        print("Pro spuštění zapiš argumenty v následujícím tvaru:",
+              "election-scraper.py 'URL' 'nazev_souboru.csv'",
+              sep="\n")
+    elif "volby.cz/pls/ps2017nss/" not in sys.argv[1]:
+        print("Špatně zadaná webová adresa okresu!")
+    elif ".csv" not in sys.argv[2]:
+        print("Název souboru musí končit '.csv' (např. 'vysledky.csv')")
+    else:
+        zapis_do_csv(sys.argv[1], sys.argv[2])
+    print("Ukončuji elections_scraper.py")
 
-def ziskej_parsovanou_odpoved(url: str):
+def ziskej_parsovanou_odpoved(url):
     '''Získej rozdělenou odpověď na požadavek get.'''
     return bs4.BeautifulSoup(requests.get(url).text, features="html.parser")
 
-def ziskej_informace_z_table(obsah):
-    table = obsah.find("table", id="t%sa%")
-    return table
+def najdi_mesta(url):
+    soup = ziskej_parsovanou_odpoved(url)
+    mesta = soup.find_all("tr")
+    return mesta
 
-def sloupec_cisla(data):
-    '''Získej kódy všech obcí'''
-    cisla = []
-    for i in data.find_all("td", {"class": "cislo"}):
-        cislo = i.text
-        cisla.append(cislo)
-    return cisla
-
-def sloupec_nazev(data):
-    '''Získej názvy všech obcí'''
-    nazev = []
-    for i in data.find_all("td", {"class": "overflow_name"}):
-        obec = i.text
-        nazev.append(obec)
-    return nazev
+def najdi_udaje_mesta(url):
+    mesta = najdi_mesta(url)
+    udaje_mesta = []
+    for mesto in mesta:
+        nazev_mesta = mesto.find("td", {"class": "overflow_name"})
+        kod_mesta = mesto.find("td", {"class": "cislo"})
+        if nazev_mesta:
+            udaje_mesta.append([kod_mesta.text, nazev_mesta.text])
+        else:
+            continue
+    return udaje_mesta
 
 def data_z_odkazu(data):
     '''Získej URL pro jednotlivé výsledky'''
@@ -57,7 +52,8 @@ def data_z_odkazu(data):
             links.append(x.get("href"))
     return links
 
-def projdi_odkazy_pridej_prefix(url: list):
+def projdi_odkazy_pridej_prefix(url):
+    '''Přidá prefix ke každé relativní url'''
     for link in url:
         append_str = "https://volby.cz/pls/ps2017nss/"
         pre_res = [append_str + link for link in url]
@@ -99,6 +95,40 @@ def projdi_udaje_stran(url_mest):
         hlasy_stran.append(celkem_hlasu_mesta)
 
     return hlasy_stran
+
+def projdi_nazvy_stran(url_mest):
+    nazvy_stran = []
+    soup_strany = ziskej_parsovanou_odpoved(url_mest)
+    tabulka_nazvy = soup_strany.find_all("td", {"class": "overflow_name"})
+    for nazev in tabulka_nazvy:
+        nazvy_stran.append(nazev.text)
+    return nazvy_stran
+
+def vytvor_hlavicku_tabulky(url):
+    url_mesta = projdi_odkazy_pridej_prefix(url)[0]
+    hlavicka_tabulky = ["Kód obce", "Název obce", "Voliči v seznamu", "Vydané obálky", "Platné Hlasy"]
+    nazvy_stran = projdi_nazvy_stran(url_mesta)
+    hlavicka_tabulky.extend(nazvy_stran)
+    return hlavicka_tabulky
+
+def vytvor_vysledky_obce(url):
+    url_mest = projdi_odkazy_pridej_prefix(url)
+    vysledky_obce = najdi_udaje_mesta(url)
+    volici_mesta = projdi_jednotliva_mesta(url_mest)
+    vysledky_stran = projdi_udaje_stran(url_mest)
+    for i in range(len(vysledky_obce)):
+        vysledky_obce[i].extend(volici_mesta[i])
+    for j in range(len(vysledky_obce)):
+        vysledky_obce[j].extend(vysledky_stran[j])
+    return vysledky_obce
+
+def zapis_do_csv(url, nazev_souboru):
+    print(f"STAHUJI DATA Z VYBRANEHO URL: {url}")
+    vysledky_obce = vytvor_vysledky_obce(url)
+    hlavicka_tabulky = vytvor_hlavicku_tabulky(url)
+    print(f"UKLADAM DO SOUBORU: {nazev_souboru}")
+    df = pd.DataFrame(hlavicka_tabulky, vysledky_obce)
+    df.to_csv(nazev_souboru, encoding='utf-8')
 
 if __name__ == "__main__":
     main()
