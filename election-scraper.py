@@ -12,16 +12,15 @@ import sys
 
 def main():
     if len(sys.argv) != 3:
-        print("Pro spuštění zapiš argumenty v následujícím tvaru:",
-              "election-scraper.py 'URL' 'nazev_souboru.csv'",
+        print("Pro spuštění zadej 'URL' 'nazev_souboru.csv'",
               sep="\n")
     elif "volby.cz/pls/ps2017nss/" not in sys.argv[1]:
-        print("Špatně zadaná webová adresa okresu!")
+        print("Neplatná URL")
     elif ".csv" not in sys.argv[2]:
-        print("Název souboru musí končit '.csv' (např. 'vysledky.csv')")
+        print("Konkovka souboru musí být '.csv' (např. 'vysledky.csv')")
     else:
         zapis_do_csv(sys.argv[1], sys.argv[2])
-    print("Ukončuji elections_scraper.py")
+    print("Ukoncuji election-scraper.py")
 
 def ziskej_parsovanou_odpoved(url):
     odpove_url = requests.get(url)
