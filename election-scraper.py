@@ -7,7 +7,7 @@ discord: Martina_F#2319
 
 import requests
 import bs4
-import pandas as pd
+import csv
 import sys
 
 def main():
@@ -24,8 +24,8 @@ def main():
     print("Ukončuji elections_scraper.py")
 
 def ziskej_parsovanou_odpoved(url):
-    '''Získej rozdělenou odpověď na požadavek get.'''
-    return bs4.BeautifulSoup(requests.get(url).text, features="html.parser")
+    odpove_url = requests.get(url)
+    return bs4.BeautifulSoup(odpove_url.text, "html.parser")
 
 def najdi_mesta(url):
     soup = ziskej_parsovanou_odpoved(url)
@@ -44,20 +44,16 @@ def najdi_udaje_mesta(url):
             continue
     return udaje_mesta
 
-def data_z_odkazu(data):
-    '''Získej URL pro jednotlivé výsledky'''
-    links = []
-    for i in data.find_all("td", {"class": "cislo"}):
-        for x in i.find_all("a"):
-            links.append(x.get("href"))
-    return links
-
-def projdi_odkazy_pridej_prefix(url):
-    '''Přidá prefix ke každé relativní url'''
-    for link in url:
-        append_str = "https://volby.cz/pls/ps2017nss/"
-        pre_res = [append_str + link for link in url]
-    return pre_res
+def zjisti_url_mesta(url):
+    mesta = najdi_mesta(url)
+    url_mest = []
+    for mesto in mesta:
+        url_mesta = mesto.find("a", href=True)
+        if url_mesta:
+            url_mest.append("https://volby.cz/pls/ps2017nss/" + url_mesta["href"])
+        else:
+            continue
+    return url_mest
 
 def projdi_jednotliva_mesta(url_mest):
     volici_mesta = []
@@ -105,14 +101,14 @@ def projdi_nazvy_stran(url_mest):
     return nazvy_stran
 
 def vytvor_hlavicku_tabulky(url):
-    url_mesta = projdi_odkazy_pridej_prefix(url)[0]
+    url_mesta = zjisti_url_mesta(url)[0]
     hlavicka_tabulky = ["Kód obce", "Název obce", "Voliči v seznamu", "Vydané obálky", "Platné Hlasy"]
     nazvy_stran = projdi_nazvy_stran(url_mesta)
     hlavicka_tabulky.extend(nazvy_stran)
     return hlavicka_tabulky
 
 def vytvor_vysledky_obce(url):
-    url_mest = projdi_odkazy_pridej_prefix(url)
+    url_mest = zjisti_url_mesta(url)
     vysledky_obce = najdi_udaje_mesta(url)
     volici_mesta = projdi_jednotliva_mesta(url_mest)
     vysledky_stran = projdi_udaje_stran(url_mest)
@@ -123,12 +119,15 @@ def vytvor_vysledky_obce(url):
     return vysledky_obce
 
 def zapis_do_csv(url, nazev_souboru):
-    print(f"STAHUJI DATA Z VYBRANEHO URL: {url}")
+    print(f"Stahuji data z url: {url}")
     vysledky_obce = vytvor_vysledky_obce(url)
     hlavicka_tabulky = vytvor_hlavicku_tabulky(url)
-    print(f"UKLADAM DO SOUBORU: {nazev_souboru}")
-    df = pd.DataFrame(hlavicka_tabulky, vysledky_obce)
-    df.to_csv(nazev_souboru, encoding='utf-8')
+    print(f"Ukládám data do souboru: {nazev_souboru}")
+    with open(nazev_souboru, "w", newline="") as f:
+        thewriter = csv.writer(f)
+        thewriter.writerow(hlavicka_tabulky)
+        for radek in vysledky_obce:
+            thewriter.writerow(radek)
 
 if __name__ == "__main__":
     main()
