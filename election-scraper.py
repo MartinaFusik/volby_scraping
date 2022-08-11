@@ -12,9 +12,9 @@ import sys
 
 def main():
     if len(sys.argv) != 3:
-        print("Pro spuštění zadej 'URL' 'nazev_souboru.csv'",
+        print("Pro spuštění zadej 'URL'mezera'nazev_souboru.csv'",
               sep="\n")
-    elif "volby.cz/pls/ps2017nss/" not in sys.argv[1]:
+    elif "volby.cz/pls/ps2017/" not in sys.argv[1]:
         print("Neplatná URL")
     elif ".csv" not in sys.argv[2]:
         print("Konkovka souboru musí být '.csv' (např. 'vysledky.csv')")
@@ -31,7 +31,7 @@ def najdi_mesta(url):
     mesta = soup.find_all("tr")
     return mesta
 
-def najdi_udaje_mesta(url):
+def projdi_data(url):
     mesta = najdi_mesta(url)
     udaje_mesta = []
     for mesto in mesta:
@@ -101,14 +101,14 @@ def projdi_nazvy_stran(url_mest):
 
 def vytvor_hlavicku_tabulky(url):
     url_mesta = zjisti_url_mesta(url)[0]
-    hlavicka_tabulky = ["Kód obce", "Název obce", "Voliči v seznamu", "Vydané obálky", "Platné Hlasy"]
+    hlavicka_tabulky = ["Číslo obce", "Název obce", "Voliči v seznamu", "Vydané obálky", "Platné Hlasy"]
     nazvy_stran = projdi_nazvy_stran(url_mesta)
     hlavicka_tabulky.extend(nazvy_stran)
     return hlavicka_tabulky
 
 def vytvor_vysledky_obce(url):
     url_mest = zjisti_url_mesta(url)
-    vysledky_obce = najdi_udaje_mesta(url)
+    vysledky_obce = projdi_data(url)
     volici_mesta = projdi_jednotliva_mesta(url_mest)
     vysledky_stran = projdi_udaje_stran(url_mest)
     for i in range(len(vysledky_obce)):
